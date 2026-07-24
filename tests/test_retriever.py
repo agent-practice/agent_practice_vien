@@ -17,7 +17,7 @@ def test_retrieve_returns_relevant_chunk(indexed_dir: Path):
     results = retrieve("Claude Opus 5는 어떤 모델이야?", k=3, persist_dir=indexed_dir)
     assert results
     sources = {r.source for r in results}
-    assert "claude.md" in sources
+    assert "anthropic-claude.md" in sources
 
 
 def test_retrieve_raises_when_not_indexed(tmp_path: Path):
