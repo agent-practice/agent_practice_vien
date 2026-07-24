@@ -20,7 +20,7 @@ def test_load_all_chunks_from_real_knowledge_base():
     chunks = load_all_chunks()
     assert len(chunks) > 0
     sources = {c["source"] for c in chunks}
-    assert "claude.md" in sources
+    assert "anthropic-claude.md" in sources
     assert "gpt.md" in sources
 
 
