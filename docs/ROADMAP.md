@@ -16,7 +16,8 @@
 - [x] 테스트 4개 통과 (`describe_provider`, `list_model_benchmarks` 키 없을 때 처리, 실제 Ollama 연동 통합 테스트)
 - [x] 실제 CLI 실행 확인 (`recommend` — 벤치마크 키 없이도 안내 메시지 + 대안 답변, 에러로 안 죽음)
 - [ ] ARTIFICIALANALYSIS_API_KEY 입력 후 실제 벤치마크 근거 추천 확인 — 사용자 액션 필요
-- [ ] GitHub 커밋/push (personal + org 양쪽 동기화)
+- [x] GitHub 커밋/push + PR + 머지 (personal + org 양쪽) — org는 히스토리 분기로 merge conflict 발생,
+  `git merge -X theirs` 로컬 해소 후 push로 정리 (force-push 없이)
 
 ## 확장 아이디어 (이후)
 - [ ] `list_model_benchmarks` 응답 스키마 실제 키로 검증 (현재는 문서 기반 방어적 파싱만 확인, 실API 응답 미검증)
