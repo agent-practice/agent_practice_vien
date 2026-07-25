@@ -15,9 +15,6 @@ Google DeepMind가 개발한 멀티모달 LLM 패밀리. Google 생태계(검색
 - Google Search grounding(검색 연동)으로 최신 정보 기반 답변 지원.
 - Vertex AI를 통해 엔터프라이즈 배포, 파인튜닝, 안전 필터 커스터마이징 가능.
 
-## 가격 정책 (일반적 경향 — 정확한 수치는 공식 가격 페이지 확인)
-Pro/Flash/Flash-Lite 등급별 차등 과금. Flash 계열은 대량 트래픽에서 비용 효율이 높은 편.
-
 ## 적합한 용도
 초장문 컨텍스트가 필요한 작업(대규모 코드베이스 분석, 긴 문서 요약), 멀티모달 입력이 중심인 애플리케이션,
 Google Workspace/Cloud 생태계와의 통합이 필요한 제품.

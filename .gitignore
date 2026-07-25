@@ -8,9 +8,6 @@ __pycache__/
 venv/
 .pytest_cache/
 
-# 로컬 생성물 (벡터스토어)
-data/chroma/
-
 # os
 .DS_Store
 

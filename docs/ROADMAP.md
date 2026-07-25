@@ -1,27 +1,25 @@
 # ROADMAP
 
-## MVP
+## v1 — RAG MVP (완료, v2로 대체됨)
 - [x] 프로젝트 스켈레톤 + aidlc-docs 설계 문서
 - [x] 지식베이스 시드 문서 6종 (claude/gpt/gemini/llama/mistral/grok)
-- [x] ingest/retriever/generator/cli 구현
-- [x] 키 핸드오프 (scripts/setup_keys.py, docs/HANDOFF.md)
-- [x] 테스트 작성 (색인+검색, 키 불필요)
-- [x] 의존성 설치 + 테스트 실측 검증 (`pytest` 5 passed, `python -m app.cli ingest` 청크 42개 색인 확인)
-- [ ] 실사용 검증 (ANTHROPIC_API_KEY 입력 후 질문-답변 확인) — 사용자 액션 필요
-- [x] git 첫 커밋 (`feature/rag-agent-mvp` 브랜치, 6240e2e)
-- [x] GitHub repo 2곳 생성 + push + PR + 머지 완료
-  - https://github.com/codenameVien/agent_practice (private)
-  - https://github.com/agent-practice/agent_practice_vien (public — org repo, 이름 변경됨)
+- [x] ingest/retriever/generator/cli 구현 (Chroma + sentence-transformers + Claude API)
+- [x] 키 핸드오프, 테스트, GitHub repo 2곳 생성 + push + PR + 머지
 - [x] claude.md → anthropic-claude.md 파일명 수정 (macOS 대소문자 무시로 CLAUDE.md 오인식 버그)
-- [x] .env.example 추가, .gitignore 재확인 (비밀값 노출 없음 확인 후 org repo public 전환)
 
-## 다음 단계 (사용자 방향 전환 예정)
-- [ ] RAG → API 조회 기반 agent로 아키텍처 전환 (사용자 계획, 아직 미착수)
-- [ ] 생성 백엔드를 Claude API → Qwen(Ollama 로컬) 로 교체
+## v2 — 벤치마크 기반 추천 agent (진행 중)
+- [x] Chroma/임베딩/Claude API 제거 → Ollama(qwen3:14b) tool-calling agent로 교체
+- [x] `describe_provider` 도구 (로컬 지식 저장소, 키 불필요)
+- [x] `list_model_benchmarks` 도구 (Artificial Analysis API, 무료 티어 키 필요)
+- [x] 지식베이스에서 정적 가격 섹션 제거 (실시간 벤치마크 도구와 중복/충돌 방지)
+- [x] 키 핸드오프 갱신 (scripts/setup_keys.py, docs/HANDOFF.md → ARTIFICIALANALYSIS_API_KEY)
+- [x] 테스트 4개 통과 (`describe_provider`, `list_model_benchmarks` 키 없을 때 처리, 실제 Ollama 연동 통합 테스트)
+- [x] 실제 CLI 실행 확인 (`recommend` — 벤치마크 키 없이도 안내 메시지 + 대안 답변, 에러로 안 죽음)
+- [ ] ARTIFICIALANALYSIS_API_KEY 입력 후 실제 벤치마크 근거 추천 확인 — 사용자 액션 필요
+- [ ] GitHub 커밋/push (personal + org 양쪽 동기화)
 
 ## 확장 아이디어 (이후)
-- [ ] 답변에 청크 distance/score 노출 (검색 품질 확인용)
-- [ ] 지식베이스 문서 추가/자동 갱신 스크립트
+- [ ] `list_model_benchmarks` 응답 스키마 실제 키로 검증 (현재는 문서 기반 방어적 파싱만 확인, 실API 응답 미검증)
+- [ ] 벤치마크 캐시를 파일 기반으로 영속화 (현재는 프로세스 메모리 캐시라 CLI 재실행마다 초기화)
 - [ ] 웹 UI (Streamlit/FastAPI)
-- [ ] 재랭킹(rerank) 단계 추가
-- [ ] 출처 하이라이트 (근거 문장 강조)
+- [ ] 대화 히스토리 유지되는 진짜 멀티턴 chat (현재 chat은 질문마다 독립 실행)

@@ -1,32 +1,35 @@
 # agent_practice
 [한국어](README.md) | [English](README.en.md)
 
-A RAG agent that answers questions about commercial LLM models (Claude/GPT/Gemini/Llama/Mistral/Grok)
-by searching a local knowledge base.
+An agent that recommends a commercial LLM model fitting your need (use case, budget, performance)
+using live benchmark and pricing data.
 
 ## Why I built this
-A hands-on practice project to implement a full RAG (retrieval-augmented generation) pipeline
-from scratch — chunking, embedding, vector search, prompt assembly, and LLM calls.
+This started as RAG over a static local knowledge base. But recommending a model based on
+"performance benchmarks" needs live data, not frozen docs, so I switched to a tool-calling agent
+pattern: a local LLM (Qwen via Ollama) decides which tool to call and grounds its answer in the
+result. A hands-on practice project for agentic tool use.
 
 ## Features
-- Auto-chunks markdown knowledge base by `##` sections and indexes them
-- Local embeddings (sentence-transformers) — indexing and retrieval work with no API key
-- Calls the Claude API with retrieved evidence as context and cites sources (file/section)
-- CLI: one-shot question (`ask`), interactive mode (`chat`)
+- Qwen (local, via Ollama — no API key needed) decides which tool to call based on the question
+- `describe_provider`: qualitative overview per provider from the local knowledge base (no key needed)
+- `list_model_benchmarks`: live intelligence/coding/math benchmark indices, speed, and pricing via
+  the Artificial Analysis API
+- CLI: one-shot recommend/question (`recommend`), interactive mode (`chat`)
 
 ## Architecture
 ```mermaid
 flowchart TD
-    KB["data/knowledge_base/*.md"] -->|section-level chunking| ING["app/ingest.py"]
-    ING -->|local embedding| CHR[("Chroma\ndata/chroma")]
-    Q["question"] --> RET["app/retriever.py"]
-    CHR -->|top-k search| RET
-    RET --> GEN["app/generator.py\n(Claude API call)"]
-    GEN --> CLI["app/cli.py"]
+    U["user request"] --> AG["app/agent.py\n(tool-calling loop)"]
+    AG <-->|"chat + tools"| OL["Ollama (qwen3:14b, local)"]
+    OL -->|tool_call| DP["describe_provider\n(data/knowledge_base/*.md)"]
+    OL -->|tool_call| LB["list_model_benchmarks\n(Artificial Analysis API)"]
+    AG --> CLI["app/cli.py"]
 ```
 
-Indexing and retrieval need no API key; only answer generation requires `ANTHROPIC_API_KEY`.
-Design background: `aidlc-docs/inception/`.
+`describe_provider` only reads local files (no key/network needed); only `list_model_benchmarks`
+needs `ARTIFICIALANALYSIS_API_KEY` — without it, it returns a guidance message instead of an error,
+and the agent reflects that in its answer. Design background: `aidlc-docs/inception/`.
 
 ## Getting started
 ```bash
@@ -34,28 +37,30 @@ python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 
-python -m app.cli ingest          # index (no key needed)
+ollama pull qwen3:14b   # one-time, pulls the local model
 ```
-For `ANTHROPIC_API_KEY`, see `docs/HANDOFF.md` and run `scripts/setup_keys.py`.
-Optionally override the default model (`claude-opus-5`) via the `ANTHROPIC_MODEL` env var.
+For `ARTIFICIALANALYSIS_API_KEY` (free tier), see `docs/HANDOFF.md` and run `scripts/setup_keys.py`.
 
 ## Example
 ```
-$ python -m app.cli ingest
-색인 완료: 청크 42개 → /Users/vien/MyProjects/agent_practice/data/chroma
-
-$ python -m app.cli ask "Claude Opus 5는 어떤 모델이야?"
-[오류] ANTHROPIC_API_KEY가 설정되지 않았습니다. `python3 scripts/setup_keys.py` 로 입력하세요 (자세한 안내: docs/HANDOFF.md).
+$ python -m app.cli recommend "Recommend a model for a code-review agent, I want to save on cost"
+현재 도구 사용이 불가능한 상태로, 실시간 벤치마크 데이터를 확인할 수 없습니다. 다만, 일반적으로
+코드 리뷰에 적합하고 예산을 아끼는 데 유리한 모델로는 다음과 같은 선택지를 고려할 수 있습니다:
+...(truncated)...
+추후 도구 사용이 가능해지면, 실시간 벤치마크 점수와 가격 데이터를 기반으로 보다 정확한 추천이 가능합니다.
 ```
-This is the actual output from a real run before a key was configured — indexing/retrieval work
-correctly, and generation fails gracefully with guidance instead of crashing. Once a key is set,
-`ask` returns an answer grounded in the retrieved evidence.
+This is the actual output from a real run before `ARTIFICIALANALYSIS_API_KEY` was configured — the
+missing tool is reported plainly instead of crashing, and once the key is set the agent grounds its
+recommendation in real benchmark and pricing numbers.
 
 ## Tech choices
-- **Local embeddings (sentence-transformers) + Chroma**: chosen over an embedding-specific API
-  (e.g. Voyage AI) so the indexing/retrieval pipeline is fully testable without any key. Only
-  generation needs a Claude API key — that's the whole point of the project.
-- **Chroma (local, persistent)**: no separate server needed, fits a small knowledge base.
+- **Ollama + Qwen (local)**: no paid cloud API key needed for generation — switched from the
+  original Claude API version.
+- **Artificial Analysis API**: one of the few free public APIs offering intelligence/coding/math
+  benchmarks and pricing for commercial LLMs in one place —
+  [artificialanalysis.ai](https://artificialanalysis.ai/data-api).
+- **Tool-calling instead of vector search**: since lookups are keyed by provider name, no
+  embeddings/vector DB are needed — dropped Chroma/sentence-transformers, much lighter dependencies.
 
 ## Roadmap
 [docs/ROADMAP.md](docs/ROADMAP.md)

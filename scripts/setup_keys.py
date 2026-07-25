@@ -16,11 +16,12 @@ from pathlib import Path
 ENV_PATH = Path(__file__).resolve().parent.parent / ".env"
 
 KEYS = [
-    ("ANTHROPIC_API_KEY", "Claude API 호출 (유료, 사용량 과금)"),
+    ("ARTIFICIALANALYSIS_API_KEY", "Artificial Analysis 벤치마크/가격 API (무료 티어, 일 100회 제한)"),
 ]
 
 DEFAULTS = {
-    "ANTHROPIC_MODEL": "claude-opus-5",
+    "OLLAMA_MODEL": "qwen3:14b",
+    "OLLAMA_HOST": "http://localhost:11434",
 }
 
 
