@@ -1,6 +1,14 @@
 # secrets
 .env
 
+# agent instruction/config dirs (github-workflow 정책 필수 항목)
+.claude/
+.codex/
+.omc/
+.omx/
+node_modules/
+dist/
+
 # python
 __pycache__/
 *.pyc
