@@ -11,7 +11,7 @@ import requests
 
 OLLAMA_HOST = os.environ.get("OLLAMA_HOST", "http://localhost:11434")
 DEFAULT_MODEL = os.environ.get("OLLAMA_MODEL", "qwen3:14b")
-REQUEST_TIMEOUT = 180
+REQUEST_TIMEOUT = 300
 
 
 def chat(messages: list[dict], tools: list[dict] | None = None, model: str | None = None) -> dict:
