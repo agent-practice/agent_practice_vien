@@ -1,31 +1,32 @@
 # agent_practice
 [한국어](README.md) | [English](README.en.md)
 
-상용 LLM 모델(Claude/GPT/Gemini/Llama/Mistral/Grok) 정보를 검색해 질문에 답하는 RAG 에이전트.
+사용자 요구(용도·예산·성능)에 맞는 상용 LLM 모델을 실시간 벤치마크·가격 데이터로 추천하는 에이전트.
 
 ## 왜 만들었나
-RAG(검색 증강 생성) 파이프라인을 처음부터 끝까지 직접 손으로 구현해보는 연습 프로젝트.
-청킹·임베딩·벡터검색·프롬프트 조합·LLM 호출을 각각 어떻게 엮는지 감을 잡는 게 목적.
+처음엔 정적 지식베이스를 벡터검색하는 RAG로 시작했는데, "성능 벤치마크를 참고해서 요청에 맞는 모델을
+추천"하려면 고정된 문서보다 실시간 데이터가 낫다고 판단해 tool-calling agent로 전환했다. 로컬 LLM(Qwen via
+Ollama)이 필요할 때 직접 도구를 호출해 근거를 확인하고 답하는 구조를 연습하는 프로젝트.
 
 ## 주요 기능
-- 마크다운 지식 저장소를 `##` 섹션 단위로 자동 청킹 후 색인
-- 로컬 임베딩(sentence-transformers)으로 별도 API 키 없이 색인·검색 가능
-- 검색된 근거를 컨텍스트로 Claude API를 호출해 출처(파일명/섹션)와 함께 답변
-- CLI: 1회성 질문(`ask`), 대화형(`chat`)
+- Qwen(Ollama 로컬 실행, 키 불필요)이 질문을 보고 어떤 도구를 부를지 스스로 판단
+- `describe_provider`: 공급사별 개요·특징을 로컬 지식 저장소에서 조회 (키 불필요)
+- `list_model_benchmarks`: Artificial Analysis API로 지능/코딩/수학 벤치마크 지수·속도·가격을 실시간 조회
+- CLI: 1회성 추천/질문(`recommend`), 대화형(`chat`)
 
 ## 구조
 ```mermaid
 flowchart TD
-    KB["data/knowledge_base/*.md"] -->|섹션 단위 청킹| ING["app/ingest.py"]
-    ING -->|로컬 임베딩| CHR[("Chroma\ndata/chroma")]
-    Q["질문"] --> RET["app/retriever.py"]
-    CHR -->|top-k 검색| RET
-    RET --> GEN["app/generator.py\n(Claude API 호출)"]
-    GEN --> CLI["app/cli.py"]
+    U["사용자 요청"] --> AG["app/agent.py\n(tool-calling 루프)"]
+    AG <-->|"chat + tools"| OL["Ollama (qwen3:14b, 로컬)"]
+    OL -->|tool_call| DP["describe_provider\n(data/knowledge_base/*.md)"]
+    OL -->|tool_call| LB["list_model_benchmarks\n(Artificial Analysis API)"]
+    AG --> CLI["app/cli.py"]
 ```
 
-색인(ingest)·검색(retriever)은 키가 필요 없고, 답변 생성(generator) 단계에서만 `ANTHROPIC_API_KEY`가 필요하다.
-설계 배경은 `aidlc-docs/inception/`.
+`describe_provider`는 로컬 파일만 읽어 키·네트워크가 불필요하고, `list_model_benchmarks`만
+`ARTIFICIALANALYSIS_API_KEY`가 필요하다 — 없으면 에러 대신 안내 메시지를 반환해 agent가 그 사실을
+답변에 반영한다. 설계 배경은 `aidlc-docs/inception/`.
 
 ## 시작하기
 ```bash
@@ -33,26 +34,28 @@ python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 
-python -m app.cli ingest          # 색인 (키 불필요)
+ollama pull qwen3:14b   # 최초 1회, 로컬 모델 받기
 ```
-답변 생성에 필요한 `ANTHROPIC_API_KEY`는 `docs/HANDOFF.md` 안내대로 `scripts/setup_keys.py`로 입력한다.
-선택적으로 `ANTHROPIC_MODEL` 환경변수로 기본 모델(`claude-opus-5`)을 바꿀 수 있다.
+벤치마크 조회에 필요한 `ARTIFICIALANALYSIS_API_KEY`(무료 티어)는 `docs/HANDOFF.md` 안내대로
+`scripts/setup_keys.py`로 입력한다.
 
 ## 사용 예시
 ```
-$ python -m app.cli ingest
-색인 완료: 청크 42개 → /Users/vien/MyProjects/agent_practice/data/chroma
-
-$ python -m app.cli ask "Claude Opus 5는 어떤 모델이야?"
-[오류] ANTHROPIC_API_KEY가 설정되지 않았습니다. `python3 scripts/setup_keys.py` 로 입력하세요 (자세한 안내: docs/HANDOFF.md).
+$ python -m app.cli recommend "코드 리뷰용 에이전트에 쓸 모델 추천해줘, 예산은 아끼고 싶어"
+현재 도구 사용이 불가능한 상태로, 실시간 벤치마크 데이터를 확인할 수 없습니다. 다만, 일반적으로
+코드 리뷰에 적합하고 예산을 아끼는 데 유리한 모델로는 다음과 같은 선택지를 고려할 수 있습니다:
+...(생략)...
+추후 도구 사용이 가능해지면, 실시간 벤치마크 점수와 가격 데이터를 기반으로 보다 정확한 추천이 가능합니다.
 ```
-위는 키를 입력하기 전 실제 실행 결과 — 색인/검색은 정상 동작하고, 생성 단계에서만 키를 요구하며 에러로 죽지 않고 안내 후 종료한다.
-키를 입력하면 `ask`가 검색된 근거를 인용한 답변을 출력한다.
+위는 `ARTIFICIALANALYSIS_API_KEY`를 입력하기 전 실제 실행 결과 — 도구가 없으면 에러 없이 그 사실을
+답변에 명시하고, 키를 입력하면 실제 벤치마크·가격 수치를 근거로 추천한다.
 
 ## 기술 선택 (선택)
-- **로컬 임베딩(sentence-transformers) + Chroma**: Voyage AI 등 임베딩 전용 API 대신 선택 — 연습 프로젝트에서
-  색인·검색 파이프라인을 키 없이 완전히 테스트 가능하게 하기 위함. 생성 단계만 Claude API 키가 필요(이 프로젝트의 본질).
-- **Chroma(로컬 persistent)**: 별도 서버 없이 소규모 지식저장소에 적합.
+- **Ollama + Qwen(로컬)**: 생성 단계에 유료 클라우드 API 키가 필요 없도록. 초기 버전(Claude API)에서 전환.
+- **Artificial Analysis API**: 상용 LLM의 지능/코딩/수학 벤치마크·가격을 한 번에 제공하는 몇 안 되는
+  무료 공개 API라서 선택 — [artificialanalysis.ai](https://artificialanalysis.ai/data-api).
+- **벡터검색 대신 tool-calling**: 공급사 이름으로 바로 지목해 조회하는 구조라 임베딩·벡터DB가 불필요해져
+  제거(Chroma/sentence-transformers) — 의존성이 크게 가벼워짐.
 
 ## 로드맵 (선택)
 [docs/ROADMAP.md](docs/ROADMAP.md)
