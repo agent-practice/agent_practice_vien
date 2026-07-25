@@ -43,7 +43,7 @@ def cmd_chat(args: argparse.Namespace) -> None:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        prog="llm-rag-agent", description="상용 LLM 모델 추천 에이전트"
+        prog="agent-practice", description="상용 LLM 모델 추천 에이전트"
     )
     sub = parser.add_subparsers(dest="command", required=True)
 

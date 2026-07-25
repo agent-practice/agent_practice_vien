@@ -43,15 +43,29 @@ For `ARTIFICIALANALYSIS_API_KEY` (free tier), see `docs/HANDOFF.md` and run `scr
 
 ## Example
 ```
-$ python -m app.cli recommend "Recommend a model for a code-review agent, I want to save on cost"
-현재 도구 사용이 불가능한 상태로, 실시간 벤치마크 데이터를 확인할 수 없습니다. 다만, 일반적으로
-코드 리뷰에 적합하고 예산을 아끼는 데 유리한 모델로는 다음과 같은 선택지를 고려할 수 있습니다:
-...(truncated)...
-추후 도구 사용이 가능해지면, 실시간 벤치마크 점수와 가격 데이터를 기반으로 보다 정확한 추천이 가능합니다.
+$ python -m app.cli recommend "Recommend a model for a code-review agent, budget-conscious, cite real benchmark numbers"
+
+### **1. Model overview and key metrics**
+#### **GPT-5.6 Terra (max)**
+- **Strengths**: highest artificial_analysis_intelligence_index (58.9), strong coding index (77.4)
+- **Weaknesses**: expensive (30¢/M output tokens), slow time-to-first-token (86.5s)
+- **Use case**: high-difficulty tasks where intelligence matters more than cost
+
+#### **GPT-5.6 Luna (max)**
+- **Strengths**: cheapest (6¢/M output tokens), fast (171 tokens/s)
+- **Weaknesses**: lower intelligence index (51.2), lower coding index (71.4)
+- **Use case**: budget-first tasks (simple automation, low-stakes data processing)
+
+...(abridged — the real output includes a full comparison table and more models)...
+
+### **5. Recommendation**
+- **Budget-first**: GPT-5.6 Luna (max) — cheapest option with coding index good enough for code review
+- **Performance-first**: GPT-5.6 Terra (max) — top intelligence/coding scores, higher cost
 ```
-This is the actual output from a real run before `ARTIFICIALANALYSIS_API_KEY` was configured — the
-missing tool is reported plainly instead of crashing, and once the key is set the agent grounds its
-recommendation in real benchmark and pricing numbers.
+Abridged real output from a live run with `ARTIFICIALANALYSIS_API_KEY` set — grounded in actual
+Artificial Analysis benchmark numbers. Without the key, it doesn't crash: it states plainly that
+live data isn't available and falls back to a general-knowledge answer instead — both paths were
+actually run and verified.
 
 ## Tech choices
 - **Ollama + Qwen (local)**: no paid cloud API key needed for generation — switched from the
