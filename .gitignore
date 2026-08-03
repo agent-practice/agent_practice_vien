@@ -21,3 +21,13 @@ venv/
 
 # aidlc local
 .aidlc/
+
+# AI-DLC/spec/steering 산출물 — 로컬 전용, GitHub 미게시
+aidlc-docs/
+.aidlc-rule-details/
+work-orders/
+.agent/
+.kiro/
+CLAUDE.md
+docs/ROADMAP.md
+/ROADMAP.md

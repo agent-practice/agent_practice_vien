@@ -1,0 +1,11 @@
+#!/bin/sh
+# AI-DLC/spec/steering/CLAUDE.md/로드맵 산출물 게시 차단
+pattern='^(aidlc-docs/|\.aidlc-rule-details/|work-orders/|\.agent/|\.kiro/|CLAUDE\.md$|docs/ROADMAP\.md$|ROADMAP\.md$)'
+blocked=$(git diff --cached --name-only --diff-filter=ACMR | grep -E "$pattern")
+if [ -n "$blocked" ]; then
+  echo "commit 차단: 아래 파일은 GitHub 미게시 정책 대상임" >&2
+  echo "$blocked" >&2
+  echo "정말 필요하면: git commit --no-verify" >&2
+  exit 1
+fi
+exit 0
